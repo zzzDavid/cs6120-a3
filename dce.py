@@ -4,7 +4,7 @@ bril2json < *.bril | python dce.py | brili -p # profile dynamic instr count
 """
 import json
 import sys
-
+from copy import copy
 from basic_block import form_basic_blocks
 
 # Note: 
@@ -16,7 +16,7 @@ def local_dce(block):
     # These are instrs that assigns to a variable
     # that are not used yet
     candidates = dict() # varaible -> the last instr 
-    for instr in block:
+    for instr in copy(block):
         # skip the labels
         if 'op' not in instr: continue
         # Check for usage

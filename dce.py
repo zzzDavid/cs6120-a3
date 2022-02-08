@@ -54,8 +54,9 @@ def main():
     prog = json.load(sys.stdin)
     for func in prog['functions']:
         blocks = form_basic_blocks(func['instrs'])
+        new_blocks = list()
         for block in blocks:
-            new_blocks = iterate_to_converge(block)
+            new_blocks.append(iterate_to_converge(block))
         func['instrs'] = new_blocks
     print(json.dumps(prog))
 

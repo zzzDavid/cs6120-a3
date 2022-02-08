@@ -33,16 +33,20 @@ def local_dce(block):
                 instr_to_rm = candidates[instr['dest']]
                 block.remove(instr_to_rm)
             # Update the latest definition
-            candidates[instr['dest']] = instr        
+            candidates[instr['dest']] = instr
+    # delete all unused instrs
+    for k, instr in candidates.items():
+        block.remove(instr)  
+    return block  
 
 def main():
     prog = json.load(sys.stdin)
     for func in prog['functions']:
         blocks = form_basic_blocks(func['instrs'])
         for block in blocks:
-            local_dce(block)
-        func['instrs'] = blocks
-    print(prog)
+            new_blocks = local_dce(block)
+        func['instrs'] = new_blocks
+    print(json.dumps(prog))
 
 if __name__ == "__main__":
     main()

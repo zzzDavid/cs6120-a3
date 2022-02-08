@@ -35,7 +35,7 @@ def local_dce(block):
             # Update the latest definition
             candidates[instr['dest']] = instr
     # delete all unused instrs
-    for k, instr in candidates.items():
+    for _, instr in candidates.items():
         block.remove(instr)  
     return block  
 

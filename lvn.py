@@ -7,8 +7,8 @@ import json
 from copy import copy
 from basic_block import form_basic_blocks
 
-def lvn(block):
-    new_block = copy(block)
+def lvn(block, debug=False):
+    new_block = list()
 
     # env: symbol name -> local value number
     env = dict() # str -> int
@@ -33,6 +33,11 @@ def lvn(block):
             # then we use the value
             num = tuples.index(value_tuple)
             opcode = table[num]['value_tuple'][0]
+            if debug:
+                print(value_tuple)
+                print(tuples)
+                print(table)
+                print(num)
             if opcode == "const":
                 # do constant propagation
                 pass
@@ -44,7 +49,7 @@ def lvn(block):
         else:
             # add an entry to the table
             tuples.append(value_tuple)
-            num = len(tuples)
+            num = len(tuples) - 1
             if 'dest' in instr:
                 cname = instr['dest']
             # overwritten case
@@ -54,6 +59,7 @@ def lvn(block):
         if 'dest' in instr:
             env[instr['dest']] = num
 
+        new_block.append(instr)
     return new_block
 
 def main():

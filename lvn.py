@@ -21,9 +21,13 @@ def lvn(block):
         # skip the labels
         if 'op' not in instr: continue
         # Build value tuple
-        arg_nums = [env[arg_name] for arg_name in instr['args']]
-        arg_nums.sort()
-        value_tuple = (instr['op'], *arg_nums)
+        if 'args' in instr:
+            arg_nums = [env[arg_name] for arg_name in instr['args']]
+            arg_nums.sort()
+            value_tuple = (instr['op'], *arg_nums)
+        else: # const instr
+            value_tuple = (instr['op'], instr['value'])
+
         if value_tuple in tuples:
             # if the value is in the table (computed)
             # then we use the value
@@ -41,12 +45,14 @@ def lvn(block):
             # add an entry to the table
             tuples.append(value_tuple)
             num = len(tuples)
-            cname = instr['dest']
+            if 'dest' in instr:
+                cname = instr['dest']
             # overwritten case
 
             table[num] = {'value_tuple': value_tuple, 'cname': cname}
         # update the env
-        env[instr['op']] = num
+        if 'dest' in instr:
+            env[instr['dest']] = num
 
     return new_block
 
@@ -54,7 +60,7 @@ def main():
     prog = json.load(sys.stdin)
     for func in prog['functions']:
         new_blocks = list()
-        for block in form_basic_blocks(func['instr']):
+        for block in form_basic_blocks(func['instrs']):
             new_blocks.append(lvn(block))
         func['instr'] = new_blocks
     print(json.dumps(prog))

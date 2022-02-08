@@ -4,7 +4,6 @@ bril2json < *.bril | python dce.py | brili -p # profile dynamic instr count
 """
 import json
 import sys
-from threading import local
 
 from basic_block import form_basic_blocks
 

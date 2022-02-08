@@ -39,12 +39,23 @@ def local_dce(block):
         block.remove(instr)  
     return block  
 
+def iterate_to_converge(block):
+    iter_num = 0
+    while True: 
+        old_len = len(block)
+        new_block = local_dce(block)
+        new_len = len(new_block)
+        iter_num += 1
+        if old_len == new_len: break
+        block = new_block
+    return new_block
+
 def main():
     prog = json.load(sys.stdin)
     for func in prog['functions']:
         blocks = form_basic_blocks(func['instrs'])
         for block in blocks:
-            new_blocks = local_dce(block)
+            new_blocks = iterate_to_converge(block)
         func['instrs'] = new_blocks
     print(json.dumps(prog))
 

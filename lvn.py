@@ -46,6 +46,11 @@ def lvn(block, debug=False):
         else: # const instr
             value_tuple = (instr['op'], instr['value'])
 
+        # re-generate the instr's argument
+        if 'args' in instr:
+            arg_numbers = [env[arg_name] for arg_name in instr['args']]
+            instr['args'] = [table[number]['cname'] for number in arg_numbers]
+
         if value_tuple in tuples:
             # if the value is in the table (computed)
             # then we use the value
@@ -59,9 +64,9 @@ def lvn(block, debug=False):
                 canonical_name = table[num]['cname']
                 instr['op'] = 'id'
                 instr['args'] = [canonical_name]
-        elif instr['op'] == "id":
-            id_operand_num = value_tuple[1]
-            opcode = table[id_operand_num]['value_tuple'][0]
+        elif instr['op'] == "id": # copying from a value
+            id_operand_num = value_tuple[1] # copying from which value
+            opcode = table[id_operand_num]['value_tuple'][0] # is it a const?
             if opcode == 'const': # const propagation
                 instr['op'] = 'const'
                 instr['value'] = table[num]['value_tuple'][1]
@@ -91,6 +96,9 @@ def lvn(block, debug=False):
                 table[num] = {'value_tuple': value_tuple, 'cname': cname}
         # update the env
         if 'dest' in instr:
+            # if instr['op'] == 'id': # if the instr is an id
+                # find the number of its id operand
+                #num = tuples.index(value_tuple)
             env[instr['dest']] = num
 
         new_block.append(instr)

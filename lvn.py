@@ -7,6 +7,24 @@ import json
 from copy import copy
 from basic_block import form_basic_blocks
 
+class unique(object):
+    num = 0
+    def __init__(self):
+        pass
+    @classmethod
+    def increase(cls):
+        cls.num += 1
+    @classmethod
+    def get(cls):
+        return cls.num
+
+def is_overwritten(dest, instrs):
+    for instr in instrs:
+        if 'dest' not in instr: continue
+        if instr['dest'] == dest:
+            return True
+    return False
+
 def lvn(block, debug=False):
     new_block = list()
 
@@ -17,7 +35,7 @@ def lvn(block, debug=False):
     # list of value tuples for book-keeping
     tuples = list()
 
-    for instr in block:
+    for idx, instr in enumerate(block):
         # skip the labels
         if 'op' not in instr: continue
         # Build value tuple
@@ -33,13 +51,8 @@ def lvn(block, debug=False):
             # then we use the value
             num = tuples.index(value_tuple)
             opcode = table[num]['value_tuple'][0]
-            if debug:
-                print(value_tuple)
-                print(tuples)
-                print(table)
-                print(num)
             if opcode == "const":
-                # do const folder
+                # do const folding
                 pass
             else:
                 # replace the value with an id of the cached operator
@@ -58,9 +71,24 @@ def lvn(block, debug=False):
             num = len(tuples) - 1
             if 'dest' in instr:
                 cname = instr['dest']
-            # overwritten case
-
-            table[num] = {'value_tuple': value_tuple, 'cname': cname}
+                # overwritten case
+                """e.g.
+                x = a + b
+                # use x for some time
+                x = c + d
+                y = a + b # lvn will try to replace this with y = x, which is wrong
+                The reason is that x as "canonical value" corresponds to both a+b and c+d
+                value tuples. 
+                """
+                if idx + 1 < len(block) \
+                    and is_overwritten(instr['dest'], block[idx+1:]):
+                    cname = "lvn." + str(unique.get())
+                    unique.increase()
+                    # rename the destination
+                    instr['dest'] = cname
+                
+                # update the table
+                table[num] = {'value_tuple': value_tuple, 'cname': cname}
         # update the env
         if 'dest' in instr:
             env[instr['dest']] = num

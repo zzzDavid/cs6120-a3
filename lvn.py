@@ -39,13 +39,19 @@ def lvn(block, debug=False):
                 print(table)
                 print(num)
             if opcode == "const":
-                # do constant propagation
+                # do const folder
                 pass
             else:
                 # replace the value with an id of the cached operator
                 canonical_name = table[num]['cname']
                 instr['op'] = 'id'
                 instr['args'] = [canonical_name]
+        elif instr['op'] == "id":
+            id_operand_num = value_tuple[1]
+            opcode = table[id_operand_num]['value_tuple'][0]
+            if opcode == 'const': # const propagation
+                instr['op'] = 'const'
+                instr['value'] = table[num]['value_tuple'][1]
         else:
             # add an entry to the table
             tuples.append(value_tuple)

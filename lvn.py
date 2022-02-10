@@ -7,7 +7,16 @@ import json
 from copy import copy
 from basic_block import form_basic_blocks
 
+def compute(instr, env, tuples, table):
+    """Try to compute the instruction,
+    If computable, return a constant instr,
+    else return the original instr. 
+    """
+    return instr
+
 class unique(object):
+    """Provides unique value id
+    """
     num = 0
     def __init__(self):
         pass
@@ -52,19 +61,17 @@ def lvn(block, debug=False):
             arg_numbers = [env[arg_name] for arg_name in instr['args']]
             instr['args'] = [table[number]['cname'] for number in arg_numbers]
 
+        # try compute the instr for constant folding
+        instr = compute(instr, env, tuples, table)
+
         if value_tuple in tuples:
             # if the value is in the table (computed)
             # then we use the value
             num = tuples.index(value_tuple)
             opcode = table[num]['value_tuple'][0]
-            if opcode == "const":
-                # do const folding
-                pass
-            else:
-                # replace the value with an id of the cached operator
-                canonical_name = table[num]['cname']
-                instr['op'] = 'id'
-                instr['args'] = [canonical_name]
+            canonical_name = table[num]['cname']
+            instr['op'] = 'id'
+            instr['args'] = [canonical_name]
         elif instr['op'] == "id": # copying from a value
             id_operand_num = value_tuple[1] # copying from which value
             opcode = table[id_operand_num]['value_tuple'][0] # is it a const?

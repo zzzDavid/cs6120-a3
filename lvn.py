@@ -12,6 +12,73 @@ def compute(instr, env, tuples, table):
     If computable, return a constant instr,
     else return the original instr. 
     """
+    # skip instr without args
+    # nothing to compute for them
+    if 'op' not in instr:
+        return instr
+
+    # Build value tuple
+    if 'args' in instr:
+        if instr['op'] == 'id':
+            # let const propagation handle id
+            # we skip them here
+            return instr
+        arg_nums = [env[arg_name] for arg_name in instr['args']]
+        arg_nums.sort()
+        value_tuple = (instr['op'], *arg_nums)
+    else: # const instr
+        return instr
+
+    # Are all operands constant?
+    const_operands = [tuples[num][0] == 'const' for num in arg_nums]
+    const_operands = all(const_operands)
+
+    # Are operands identical?
+    args_identical = len(set(arg_nums)) == 1
+
+    op = instr['op']
+    if const_operands: # let's do computation!
+        if op == 'ne':
+            pass
+        elif op == 'eq':
+            pass
+        elif op == 'le':
+            pass
+        elif op == 'lt':
+            pass
+        elif op == 'gt':
+            pass
+        elif op == 'ge':
+            pass
+        elif op == 'not':
+            pass
+        elif op == 'and':
+            pass
+        elif op == 'or':
+            pass
+        elif op == 'add':
+            pass
+        elif op == 'mul':
+            pass
+        elif op == 'sub':
+            pass
+        elif op == 'div':
+            pass
+        
+    elif args_identical:
+        if op == 'ne':
+            pass
+        elif op == 'eq':
+            pass
+        elif op == 'le':
+            pass
+        elif op == 'lt':
+            pass
+        elif op == 'gt':
+            pass
+        elif op == 'ge':
+            pass
+
     return instr
 
 class unique(object):

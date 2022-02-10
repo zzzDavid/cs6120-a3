@@ -24,26 +24,26 @@ def compute(instr, env, tuples, table):
         return instr
 
     # Build value tuple
+    const_operands = False
+    args_identical = False
     if 'args' in instr:
-        if instr['op'] == 'id':
-            # let const propagation handle id
-            # we skip them here
-            return instr
-        arg_nums = [env[arg_name] for arg_name in instr['args']]
-        arg_nums.sort()
+        if all(item in env for item in instr['args']):
+            if instr['op'] == 'id':
+                # let const propagation handle id
+                # we skip them here
+                return instr
+            arg_nums = [env[arg_name] for arg_name in instr['args']]
+            arg_nums.sort()
+            # Are all operands constant?
+            const_operands = [tuples[num][0] == 'const' for num in arg_nums]
+            const_operands = all(const_operands)
+        else: # func args
+            arg_nums = instr['args']
+            # Are operands identical?
+            args_identical = len(set(arg_nums)) == 1
+
     else: # const instr
         return instr
-
-    # Are all operands constant?
-    const_operands = [tuples[num][0] == 'const' for num in arg_nums]
-    const_operands = all(const_operands)
-
-    # Are operands identical?
-    args_identical = len(set(arg_nums)) == 1
-
-    # print(instr)
-    # print(f"const_operands = {const_operands}")
-    # print(f"args_identical = {args_identical}")
 
     op = instr['op']
     const_instr = {'op':'const', 'dest':instr['dest']}
@@ -190,14 +190,17 @@ def lvn(block, debug=False):
         if 'op' not in instr: continue
         # Build value tuple
         if 'args' in instr:
-            arg_nums = [env[arg_name] for arg_name in instr['args']]
-            arg_nums.sort()
-            value_tuple = (instr['op'], *arg_nums)
+            if all(item in env for item in instr['args']):
+                arg_nums = [env[arg_name] for arg_name in instr['args']]
+                arg_nums.sort()
+                value_tuple = (instr['op'], *arg_nums)
+            else: # func args
+                value_tuple = (instr['op'], *instr['args'])
         else: # const instr
             value_tuple = (instr['op'], instr['value'])
 
         # re-generate the instr's argument
-        if 'args' in instr:
+        if 'args' in instr and all(item in env for item in instr['args']):
             arg_numbers = [env[arg_name] for arg_name in instr['args']]
             instr['args'] = [table[number]['cname'] for number in arg_numbers]
 
@@ -206,9 +209,13 @@ def lvn(block, debug=False):
             # then we use the value
             num = tuples.index(value_tuple)
             opcode = table[num]['value_tuple'][0]
-            canonical_name = table[num]['cname']
-            instr['op'] = 'id'
-            instr['args'] = [canonical_name]
+            if opcode != 'const':
+                canonical_name = table[num]['cname']
+                instr['op'] = 'id'
+                instr['args'] = [canonical_name]
+            else: 
+                instr['op'] = 'const'
+                instr['value'] = table[num]['value_tuple'][1]
         elif instr['op'] == "id": # copying from a value
             id_operand_num = value_tuple[1] # copying from which value
             opcode = table[id_operand_num]['value_tuple'][0] # is it a const?

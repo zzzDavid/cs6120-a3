@@ -4,9 +4,9 @@
   constant_fold1: bool = const true;
   constant_fold2: bool = const false;
   constant_fold3: bool = const false;
-  constant_fold4: bool = const true;
-  constant_fold5: bool = const false;
-  constant_fold6: bool = const false;
+  constant_fold4: bool = const false;
+  constant_fold5: bool = const true;
+  constant_fold6: bool = const true;
   should_fold1: bool = const true;
   should_fold2: bool = const false;
   should_fold3: bool = const true;
@@ -15,6 +15,6 @@
   no_fold2: bool = ne arg1 arg2;
   no_fold3: bool = le arg1 arg2;
   no_fold4: bool = ge arg1 arg2;
-  no_fold5: bool = lt arg1 arg1;
-  no_fold6: bool = gt arg2 arg2;
+  no_fold5: bool = const false;
+  no_fold6: bool = const false;
 }

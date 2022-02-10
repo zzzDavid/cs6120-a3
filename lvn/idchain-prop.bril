@@ -1,4 +1,3 @@
-# ARGS: -p
 @main {
   x: int = const 4;
   copy1: int = id x;

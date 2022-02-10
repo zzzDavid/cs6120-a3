@@ -4,7 +4,7 @@ bril2json < *.bril | python lvn.py | brili -p # profile dynamic instr count
 """
 import sys
 import json
-from copy import copy
+import copy
 from basic_block import form_basic_blocks
 
 def str2bool(boolean):
@@ -255,8 +255,8 @@ def main():
     for func in prog['functions']:
         new_blocks = list()
         for block in form_basic_blocks(func['instrs']):
-            new_blocks.extend(lvn(block))
-        func['instr'] = new_blocks
+            new_blocks += lvn(block)
+        func['instrs'] = new_blocks
     print(json.dumps(prog))
 
 if __name__ == "__main__":

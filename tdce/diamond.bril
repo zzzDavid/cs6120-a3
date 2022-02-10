@@ -1,3 +1,4 @@
+# CMD: bril2json < {filename} | python3 ../dce.py -g | bril2txt
 @main {
   a: int = const 47;
   cond: bool = const true;

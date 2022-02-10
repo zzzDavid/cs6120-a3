@@ -1,4 +1,3 @@
-# ARGS: tdce+
 @main {
   a: int = const 1;
   b: int = const 2;

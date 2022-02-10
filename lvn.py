@@ -4,7 +4,6 @@ bril2json < *.bril | python lvn.py | brili -p # profile dynamic instr count
 """
 import sys
 import json
-import copy
 from basic_block import form_basic_blocks
 
 def str2bool(boolean):
@@ -24,7 +23,8 @@ def compute(instr, env, tuples, table):
         return instr
 
     # Build value tuple
-    const_operands = False
+    all_const_operands = False
+    any_const_operands = False
     args_identical = False
     if 'args' in instr:
         if all(item in env for item in instr['args']):
@@ -36,18 +36,25 @@ def compute(instr, env, tuples, table):
             arg_nums.sort()
             # Are all operands constant?
             const_operands = [tuples[num][0] == 'const' for num in arg_nums]
-            const_operands = all(const_operands)
+            all_const_operands = all(const_operands)
+            any_const_operands = any(const_operands)
         else: # func args
             arg_nums = instr['args']
             # Are operands identical?
             args_identical = len(set(arg_nums)) == 1
+            # Any operands constant?
+            local_args = [env[arg_name] for arg_name in instr['args'] if arg_name in env]
+            any_const_operands = any([tuples[num][0] == 'const' for num in local_args])
 
     else: # const instr
         return instr
-
+    # print(instr)
+    # print(const_operands)
+    # print(any_const_operands)
+    # print("\n")
     op = instr['op']
     const_instr = {'op':'const', 'dest':instr['dest']}
-    if const_operands: # let's do computation!
+    if all_const_operands: # let's do computation!
         # first, get those const args
         args = [tuples[num][1] for num in arg_nums]
         if op == 'ne':
@@ -115,7 +122,25 @@ def compute(instr, env, tuples, table):
             const_instr['value'] = value
             const_instr['type'] = 'int'
             return const_instr
-        
+    elif any_const_operands:
+        if op == 'and': # and false any = true
+            for arg_name in instr['args']:
+                if arg_name not in env: continue
+                value = tuples[env[arg_name]][1]
+                if value == False:
+                    value = str2bool(False)
+                    const_instr['value'] = value
+                    const_instr['type'] = 'bool'
+                    return const_instr
+        elif op == 'or': # or true any = false
+            for arg_name in instr['args']:
+                if arg_name not in env: continue
+                value = tuples[env[arg_name]][1]
+                if value == True:
+                    value = str2bool(True)
+                    const_instr['value'] = value
+                    const_instr['type'] = 'bool'
+                    return const_instr
     elif args_identical:
         if op == 'ne':
             value = str2bool(False)

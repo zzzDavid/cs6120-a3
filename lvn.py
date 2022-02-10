@@ -2,7 +2,6 @@
 bril2json < *.bril | python lvn.py | bril2txt
 bril2json < *.bril | python lvn.py | brili -p # profile dynamic instr count
 """
-from ast import boolop
 import sys
 import json
 from copy import copy
@@ -247,7 +246,6 @@ def lvn(block, debug=False):
                 env[old_name] = num
             else:
                 env[instr['dest']] = num
-
 
         new_block.append(instr)
     return new_block

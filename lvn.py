@@ -36,6 +36,7 @@ def lvn(block, debug=False):
     tuples = list()
 
     for idx, instr in enumerate(block):
+        old_name = None
         # skip the labels
         if 'op' not in instr: continue
         # Build value tuple
@@ -90,6 +91,7 @@ def lvn(block, debug=False):
                     cname = "lvn." + str(unique.get())
                     unique.increase()
                     # rename the destination
+                    old_name = instr['dest']
                     instr['dest'] = cname
                 
                 # update the table
@@ -99,7 +101,11 @@ def lvn(block, debug=False):
             # if instr['op'] == 'id': # if the instr is an id
                 # find the number of its id operand
                 #num = tuples.index(value_tuple)
-            env[instr['dest']] = num
+            if old_name is not None:
+                env[old_name] = num
+            else:
+                env[instr['dest']] = num
+
 
         new_block.append(instr)
     return new_block
@@ -109,7 +115,7 @@ def main():
     for func in prog['functions']:
         new_blocks = list()
         for block in form_basic_blocks(func['instrs']):
-            new_blocks.append(lvn(block))
+            new_blocks.extend(lvn(block))
         func['instr'] = new_blocks
     print(json.dumps(prog))
 

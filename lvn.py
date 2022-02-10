@@ -19,9 +19,9 @@ def compute(instr, env, tuples, table):
     If computable, return a constant instr,
     else return the original instr. 
     """
-    # skip instr without args
+    # skip instr without dest
     # nothing to compute for them
-    if 'op' not in instr:
+    if 'dest' not in instr or 'op' not in instr:
         return instr
 
     # Build value tuple
@@ -30,7 +30,6 @@ def compute(instr, env, tuples, table):
             # let const propagation handle id
             # we skip them here
             return instr
-        print(instr['args'])
         arg_nums = [env[arg_name] for arg_name in instr['args']]
         arg_nums.sort()
     else: # const instr
@@ -52,99 +51,99 @@ def compute(instr, env, tuples, table):
             value = str2bool(args[0] != args[1])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'eq':
             value = str2bool(args[0] == args[1])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'le':
             value = str2bool(args[0] <= args[1])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'lt':
             value = str2bool(args[0] < args[1])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'gt':
             value = str2bool(args[0] > args[1])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'ge':
             value = str2bool(args[0] >= args[1])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'not':
             value = str2bool(not args[0])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'and':
             value = str2bool(args[0] and args[1])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'or':
             value = str2bool(args[0] or args[1])
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'add':
             value = args[0] + args[1]
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'mul':
             value = args[0] * args[1]
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'sub':
             value = args[0] - args[1]
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'div':
             value = args[0] / args[1]
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         
     elif args_identical:
         if op == 'ne':
             value = str2bool(False)
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'eq':
             value = str2bool(True)
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'le':
             value = str2bool(True)
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'lt':
             value = str2bool(False)
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'gt':
             value = str2bool(False)
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
         elif op == 'ge':
             value = str2bool(True)
             const_instr['value'] = value
             const_instr['type'] = 'bool'
-            return const_instr
+            instr = const_instr
 
     return instr
 
@@ -180,6 +179,10 @@ def lvn(block, debug=False):
 
     for idx, instr in enumerate(block):
         old_name = None
+
+        # try compute the instr for constant folding
+        compute(instr, env, tuples, table)
+
         # skip the labels
         if 'op' not in instr: continue
         # Build value tuple
@@ -194,9 +197,6 @@ def lvn(block, debug=False):
         if 'args' in instr:
             arg_numbers = [env[arg_name] for arg_name in instr['args']]
             instr['args'] = [table[number]['cname'] for number in arg_numbers]
-
-        # try compute the instr for constant folding
-        instr = compute(instr, env, tuples, table)
 
         if value_tuple in tuples:
             # if the value is in the table (computed)
@@ -239,9 +239,6 @@ def lvn(block, debug=False):
                 table[num] = {'value_tuple': value_tuple, 'cname': cname}
         # update the env
         if 'dest' in instr:
-            # if instr['op'] == 'id': # if the instr is an id
-                # find the number of its id operand
-                #num = tuples.index(value_tuple)
             if old_name is not None:
                 env[old_name] = num
             else:

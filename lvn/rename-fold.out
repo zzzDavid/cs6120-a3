@@ -1,6 +1,6 @@
 @main {
-  mul1: int = const 0;
-  add1: int = const 4;
-  print mul1;
-  print add1;
+  v1: int = const 4;
+  lvn.0: int = const 0;
+  print lvn.0;
+  print v1;
 }

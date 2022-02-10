@@ -2,10 +2,17 @@
 bril2json < *.bril | python lvn.py | bril2txt
 bril2json < *.bril | python lvn.py | brili -p # profile dynamic instr count
 """
+from ast import boolop
 import sys
 import json
 from copy import copy
 from basic_block import form_basic_blocks
+
+def str2bool(boolean):
+    if boolean:
+        return 'true'
+    else:
+        return 'false'
 
 def compute(instr, env, tuples, table):
     """Try to compute the instruction,
@@ -23,9 +30,9 @@ def compute(instr, env, tuples, table):
             # let const propagation handle id
             # we skip them here
             return instr
+        print(instr['args'])
         arg_nums = [env[arg_name] for arg_name in instr['args']]
         arg_nums.sort()
-        value_tuple = (instr['op'], *arg_nums)
     else: # const instr
         return instr
 
@@ -37,47 +44,107 @@ def compute(instr, env, tuples, table):
     args_identical = len(set(arg_nums)) == 1
 
     op = instr['op']
+    const_instr = {'op':'const', 'dest':instr['dest']}
     if const_operands: # let's do computation!
+        # first, get those const args
+        args = [tuples[num][1] for num in arg_nums]
         if op == 'ne':
-            pass
+            value = str2bool(args[0] != args[1])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'eq':
-            pass
+            value = str2bool(args[0] == args[1])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'le':
-            pass
+            value = str2bool(args[0] <= args[1])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'lt':
-            pass
+            value = str2bool(args[0] < args[1])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'gt':
-            pass
+            value = str2bool(args[0] > args[1])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'ge':
-            pass
+            value = str2bool(args[0] >= args[1])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'not':
-            pass
+            value = str2bool(not args[0])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'and':
-            pass
+            value = str2bool(args[0] and args[1])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'or':
-            pass
+            value = str2bool(args[0] or args[1])
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'add':
-            pass
+            value = args[0] + args[1]
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'mul':
-            pass
+            value = args[0] * args[1]
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'sub':
-            pass
+            value = args[0] - args[1]
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'div':
-            pass
+            value = args[0] / args[1]
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         
     elif args_identical:
         if op == 'ne':
-            pass
+            value = str2bool(False)
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'eq':
-            pass
+            value = str2bool(True)
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'le':
-            pass
+            value = str2bool(True)
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'lt':
-            pass
+            value = str2bool(False)
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'gt':
-            pass
+            value = str2bool(False)
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
         elif op == 'ge':
-            pass
+            value = str2bool(True)
+            const_instr['value'] = value
+            const_instr['type'] = 'bool'
+            return const_instr
 
     return instr
 

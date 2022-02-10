@@ -22,18 +22,18 @@ def compute(instr, env, tuples, table):
     # skip instr without dest
     # nothing to compute for them
     if 'dest' not in instr or 'op' not in instr:
-        return instr
+        return
 
     # Build value tuple
     if 'args' in instr:
         if instr['op'] == 'id':
             # let const propagation handle id
             # we skip them here
-            return instr
+            return
         arg_nums = [env[arg_name] for arg_name in instr['args']]
         arg_nums.sort()
     else: # const instr
-        return instr
+        return
 
     # Are all operands constant?
     const_operands = [tuples[num][0] == 'const' for num in arg_nums]
@@ -145,7 +145,7 @@ def compute(instr, env, tuples, table):
             const_instr['type'] = 'bool'
             instr = const_instr
 
-    return instr
+    return
 
 class unique(object):
     """Provides unique value id
